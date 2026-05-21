@@ -1,0 +1,29 @@
+ # Virtual environment
+venv/
+env/
+
+# Raw data files - too large for Git
+data/
+
+# Secret credentials - never commit this
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# dbt generated files
+dbt_project/target/
+dbt_project/dbt_packages/
+
+# Great Expectations
+great_expectations/uncommitted/
+
+# OS files
+.DS_Store
+Thumbs.db
