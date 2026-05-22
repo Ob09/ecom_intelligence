@@ -1,0 +1,25 @@
+version: 2
+
+sources:
+  - name: olist
+    description: Raw Olist Brazilian e-commerce data loaded from Kaggle CSVs
+    schema: public
+    tables:
+      - name: raw_orders
+        description: One row per order placed on the Olist platform
+      - name: raw_customers
+        description: One row per unique customer
+      - name: raw_products
+        description: One row per unique product listed
+      - name: raw_sellers
+        description: One row per unique seller
+      - name: raw_payments
+        description: One row per payment made, linked to an order
+      - name: raw_reviews
+        description: One row per review left by a customer
+      - name: raw_order_items
+        description: One row per item within an order
+      - name: raw_geolocation
+        description: Brazilian zip codes with latitude and longitude
+      - name: raw_category_translation
+        description: Portuguese product category names translated to English

@@ -1,0 +1,30 @@
+[0m09:42:43.234900 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002935D2195D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002935D0A28D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002935D21B490>]}
+
+
+============================== 09:42:43.254724 | 80801403-5a1f-4b08-a40d-d45237ff3aea ==============================
+[0m09:42:43.254724 [info ] [MainThread]: Running with dbt=1.7.4
+[0m09:42:43.256738 [debug] [MainThread]: running dbt with arguments {'use_colors': 'True', 'use_experimental_parser': 'False', 'profiles_dir': 'C:\\Users\\Obedh\\.dbt', 'printer_width': '80', 'partial_parse': 'True', 'log_format': 'default', 'introspect': 'True', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'log_cache_events': 'False', 'warn_error': 'None', 'quiet': 'False', 'target_path': 'None', 'indirect_selection': 'eager', 'debug': 'False', 'static_parser': 'True', 'no_print': 'None', 'send_anonymous_usage_stats': 'True', 'version_check': 'True', 'invocation_command': 'dbt init olist_bi', 'cache_selected_only': 'False', 'log_path': 'logs', 'write_json': 'True', 'fail_fast': 'False'}
+[0m09:42:43.260141 [warn ] [MainThread]: [ConfigFolderDirectory]: Unable to parse dict {'dir': WindowsPath('C:/Users/Obedh/.dbt')}
+[0m09:42:43.262243 [info ] [MainThread]: Creating dbt configuration folder at 
+[0m09:42:43.275752 [debug] [MainThread]: Starter project path: C:\Users\Obedh\anaconda3\envs\ecom-bi\Lib\site-packages\dbt\include\starter_project
+[0m09:42:43.369720 [info ] [MainThread]: 
+Your new dbt project "olist_bi" was created!
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m09:42:43.369720 [info ] [MainThread]: Setting up your profile.
+[0m09:47:43.320238 [info ] [MainThread]: Profile olist_bi written to C:\Users\Obedh\.dbt\profiles.yml using target's profile_template.yml and your supplied values. Run 'dbt debug' to validate the connection.
+[0m09:47:43.323044 [debug] [MainThread]: Command `dbt init` succeeded at 09:47:43.323044 after 300.05 seconds
+[0m09:47:43.328261 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002935D195B50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002935559A7D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000293552C0C50>]}
+[0m09:47:43.336294 [debug] [MainThread]: Flushing usage events
