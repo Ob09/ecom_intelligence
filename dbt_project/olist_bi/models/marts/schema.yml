@@ -1,0 +1,157 @@
+version: 2
+
+models:
+
+  # ── MART SALES ─────────────────────────────────────────────
+  - name: mart_sales
+    description: >
+      Core sales fact table. One row per order.
+      Powers all revenue KPIs, fulfilment metrics, and geographic analysis.
+
+    columns:
+      - name: order_id
+        description: Unique identifier for each order
+        tests:
+          - unique          # No two orders should have the same ID
+          - not_null        # Every row must have an order ID
+
+      - name: customer_id
+        description: Customer identifier linked to this order
+        tests:
+          - not_null
+
+      - name: order_status
+        description: Current status of the order
+        tests:
+          - not_null
+          - accepted_values:  # Only these statuses should exist
+              values:
+                - delivered
+                - shipped
+                - canceled
+                - unavailable
+                - processing
+                - invoiced
+                - created
+                - approved
+                - unknown
+
+      - name: payment_value
+        description: Total payment amount for this order
+        tests:
+          - not_null
+
+      - name: year_month
+        description: Year and month label e.g. 2017-11
+        tests:
+          - not_null
+
+  # ── MART RFM ───────────────────────────────────────────────
+  - name: mart_rfm
+    description: >
+      RFM customer segmentation table. One row per unique customer.
+      Scores every customer on recency, frequency, and monetary value.
+
+    columns:
+      - name: customer_unique_id
+        description: True unique customer identifier
+        tests:
+          - unique        # Each customer must appear exactly once
+          - not_null
+
+      - name: r_score
+        description: Recency score from 1 (worst) to 5 (best)
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5]
+
+      - name: f_score
+        description: Frequency score from 1 (worst) to 5 (best)
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5]
+
+      - name: m_score
+        description: Monetary score from 1 (worst) to 5 (best)
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5]
+
+      - name: customer_segment
+        description: Human readable segment label
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - Champions
+                - Loyal Customers
+                - Potential Loyalists
+                - New Customers
+                - Promising
+                - Needs Attention
+                - At Risk
+                - Cannot Lose Them
+                - Hibernating
+                - Lost
+                - Others
+
+  # ── MART COHORT ────────────────────────────────────────────
+  - name: mart_cohort
+    description: >
+      Monthly cohort retention analysis.
+      One row per cohort and months since first purchase combination.
+
+    columns:
+      - name: cohort_month
+        description: The month this cohort of customers first purchased
+        tests:
+          - not_null
+
+      - name: months_since_first_purchase
+        description: How many months after joining this measurement is
+        tests:
+          - not_null
+
+      - name: retention_rate
+        description: Percentage of cohort still active this month
+        tests:
+          - not_null
+
+  # ── MART GEO ───────────────────────────────────────────────
+  - name: mart_geo
+    description: >
+      Geographic sales analysis by Brazilian state.
+      One row per state.
+
+    columns:
+      - name: customer_state
+        description: Two letter Brazilian state code
+        tests:
+          - unique        # Each state appears exactly once
+          - not_null
+
+      - name: total_revenue
+        description: Total revenue from this state
+        tests:
+          - not_null
+
+  # ── MART PRODUCTS ──────────────────────────────────────────
+  - name: mart_products
+    description: >
+      Product category performance analysis.
+      One row per product category.
+
+    columns:
+      - name: category_name
+        description: English product category name
+        tests:
+          - unique        # Each category appears exactly once
+          - not_null
+
+      - name: avg_review_score
+        description: Average star rating for this category
+        tests:
+          - not_null

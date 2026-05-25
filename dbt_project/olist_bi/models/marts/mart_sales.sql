@@ -62,7 +62,7 @@ order_grain as (
         -- total_payment is the full order payment value.
         -- It is already at order level in the intermediate model
         -- (same value repeated on each item row), so max() is safe.
-        max(total_payment) as payment_value,
+        coalesce(max(total_payment), 0) as payment_value,
 
         -- ── ORDER SIZE ─────────────────────────────────────────
         -- item_sequence numbers items 1, 2, 3... within an order.
