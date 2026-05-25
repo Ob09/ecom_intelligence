@@ -130,7 +130,7 @@ fluent_datasources:
         batch_metadata: {}
         table_name: mart_products
         schema_name: public_marts
-    connection_string: postgresql://postgres.bmxmtcpmgabrmsralldl:oBEDHiRELAND2024@aws-0-eu-west-1.pooler.supabase.com:5432/postgres
+    connection_string: connection_string: ${db_url}
 notebooks:
 include_rendered_content:
   globally: false
