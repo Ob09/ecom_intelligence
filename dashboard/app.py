@@ -62,6 +62,10 @@ app = dash.Dash(
     title="E-commerce BI Platform"
 )
 
+# This exposes the Flask server so gunicorn can serve the app
+# in production. Required for Render deployment.
+server = app.server
+
 # ══════════════════════════════════════════════════════════════
 # LAYOUT
 # ══════════════════════════════════════════════════════════════
@@ -123,7 +127,6 @@ def build_overview():
     monthly = fetch("/revenue/monthly")
     df      = pd.DataFrame(monthly)
 
-    # ── KPI CARDS ──────────────────────────────────────────────
     def kpi_card(title, value, subtitle="", color=COLORS["primary"]):
         return html.Div(style={**CARD_STYLE, "textAlign": "center",
                                "borderTop": f"3px solid {color}"}, children=[
@@ -167,11 +170,8 @@ def build_overview():
     ], className="mb-3")
 
     if not df.empty:
-        # ── DATE RANGE FILTER ──────────────────────────────────
-        # Filter out very early low-revenue months for cleaner charts
         df_clean = df[df["total_revenue"] > 50000].copy()
 
-        # ── MONTHLY REVENUE CHART ──────────────────────────────
         fig_revenue = px.bar(
             df,
             x="year_month",
@@ -180,12 +180,10 @@ def build_overview():
             color_discrete_sequence=[COLORS["primary"]],
             labels={"year_month": "Month", "total_revenue": "Revenue (R$)"}
         )
-        # Annotate Black Friday
         fig_revenue.add_annotation(
             x="2017-11", y=1153528,
             text="Black Friday",
-            showarrow=True,
-            arrowhead=2,
+            showarrow=True, arrowhead=2,
             arrowcolor=COLORS["warning"],
             font=dict(color=COLORS["warning"], size=11),
             ax=40, ay=-40
@@ -197,7 +195,6 @@ def build_overview():
             xaxis_tickangle=45
         )
 
-        # ── AOV CHART — filter out near-zero months ────────────
         fig_aov = px.line(
             df_clean,
             x="year_month",
@@ -241,7 +238,6 @@ def build_rfm():
     if not df_seg.empty:
         df_seg = df_seg.sort_values("customer_count", ascending=True)
 
-        # Colour mapping per segment
         color_map = {
             "Champions":           COLORS["primary"],
             "Loyal Customers":     COLORS["secondary"],
@@ -257,7 +253,6 @@ def build_rfm():
         }
         df_seg["color"] = df_seg["customer_segment"].map(color_map).fillna("#B4B2A9")
 
-        # Customers chart — fixed margins so labels are not cut off
         fig_customers = go.Figure(go.Bar(
             x=df_seg["customer_count"],
             y=df_seg["customer_segment"],
@@ -276,7 +271,6 @@ def build_rfm():
             xaxis=dict(range=[0, df_seg["customer_count"].max() * 1.25])
         )
 
-        # Revenue chart — fixed margins
         df_seg2 = df_seg.sort_values("total_revenue", ascending=True)
         df_seg2["color2"] = df_seg2["customer_segment"].map(color_map).fillna("#B4B2A9")
 
@@ -322,7 +316,6 @@ def build_rfm():
     else:
         fig_dist = go.Figure()
 
-    # Insight card
     insight = html.Div(
         style={**CARD_STYLE, "backgroundColor": COLORS["light"],
                "borderLeft": f"4px solid {COLORS['primary']}"},
@@ -422,8 +415,6 @@ def build_geo():
     df  = pd.DataFrame(geo)
 
     if not df.empty:
-
-        # ── TREEMAP — better than map for state comparison ─────
         fig_treemap = px.treemap(
             df,
             path=["customer_state"],
@@ -445,7 +436,6 @@ def build_geo():
             coloraxis_showscale=False
         )
 
-        # ── TOP 10 STATES BAR CHART ────────────────────────────
         fig_bar = px.bar(
             df.head(10),
             x="customer_state",
@@ -458,10 +448,7 @@ def build_geo():
                     "avg_fulfilment_days": "Avg Delivery Days"},
             text="total_revenue"
         )
-        fig_bar.update_traces(
-            texttemplate="R$%{text:,.0f}",
-            textposition="outside"
-        )
+        fig_bar.update_traces(texttemplate="R$%{text:,.0f}", textposition="outside")
         fig_bar.update_layout(
             plot_bgcolor="white", paper_bgcolor="white",
             font_color=COLORS["text"],
@@ -470,7 +457,6 @@ def build_geo():
             coloraxis_colorbar_title="Delivery Days"
         )
 
-        # ── FULFILMENT BY STATE ────────────────────────────────
         fig_delivery = px.bar(
             df.sort_values("avg_fulfilment_days", ascending=False).head(10),
             x="customer_state",
@@ -478,8 +464,7 @@ def build_geo():
             title="Top 10 States — Avg Delivery Days (higher = slower)",
             color="avg_fulfilment_days",
             color_continuous_scale=[[0, COLORS["secondary"]], [1, COLORS["warning"]]],
-            labels={"customer_state": "State",
-                    "avg_fulfilment_days": "Avg Delivery Days"}
+            labels={"customer_state": "State", "avg_fulfilment_days": "Avg Delivery Days"}
         )
         fig_delivery.update_layout(
             plot_bgcolor="white", paper_bgcolor="white",
@@ -488,7 +473,6 @@ def build_geo():
             showlegend=False,
             coloraxis_showscale=False
         )
-
     else:
         fig_treemap  = go.Figure()
         fig_bar      = go.Figure()
@@ -515,8 +499,8 @@ def build_products():
     products = fetch("/products")
     payments = fetch("/payments")
 
-    df    = pd.DataFrame(products)
-    df_p  = pd.DataFrame(payments)
+    df   = pd.DataFrame(products)
+    df_p = pd.DataFrame(payments)
 
     if not df.empty:
         fig_revenue = px.bar(
@@ -594,11 +578,9 @@ def build_products():
             dbc.Col(html.Div(style=CARD_STYLE, children=[
                 dcc.Graph(figure=fig_revenue, config={"displayModeBar": False})
             ]), width=7),
-            dbc.Col([
-                html.Div(style=CARD_STYLE, children=[
-                    dcc.Graph(figure=fig_payment, config={"displayModeBar": False})
-                ]),
-            ], width=5),
+            dbc.Col(html.Div(style=CARD_STYLE, children=[
+                dcc.Graph(figure=fig_payment, config={"displayModeBar": False})
+            ]), width=5),
         ]),
         dbc.Row([
             dbc.Col(html.Div(style=CARD_STYLE, children=[
@@ -609,171 +591,114 @@ def build_products():
 
 
 def build_trends():
-    """
-    Revenue trends page replacing the straight-line forecast.
-    Shows moving average, month-over-month growth, and
-    year-over-year comparison — all far more insightful.
-    """
     monthly = fetch("/revenue/monthly")
     df = pd.DataFrame(monthly)
 
     if df.empty:
         return html.Div("No data available")
 
-    # Filter out very early low-revenue months
     df = df[df["total_revenue"] > 50000].copy()
     df["ds"] = pd.to_datetime(df["year_month"] + "-01")
-
-    # ── 3-MONTH MOVING AVERAGE ─────────────────────────────────
     df["moving_avg_3m"] = df["total_revenue"].rolling(window=3).mean()
 
     fig_ma = go.Figure()
-
-    # Actual revenue bars
     fig_ma.add_trace(go.Bar(
-        x=df["year_month"],
-        y=df["total_revenue"],
-        name="Monthly Revenue",
-        marker_color=COLORS["secondary"],
-        opacity=0.7
+        x=df["year_month"], y=df["total_revenue"],
+        name="Monthly Revenue", marker_color=COLORS["secondary"], opacity=0.7
     ))
-
-    # 3-month moving average line
     fig_ma.add_trace(go.Scatter(
-        x=df["year_month"],
-        y=df["moving_avg_3m"],
+        x=df["year_month"], y=df["moving_avg_3m"],
         name="3-Month Moving Average",
-        line=dict(color=COLORS["primary"], width=3),
-        mode="lines"
+        line=dict(color=COLORS["primary"], width=3), mode="lines"
     ))
-
-    # Black Friday annotation
     fig_ma.add_annotation(
-        x="2017-11", y=1153528,
-        text="⭐ Black Friday",
+        x="2017-11", y=1153528, text="⭐ Black Friday",
         showarrow=True, arrowhead=2,
         arrowcolor=COLORS["warning"],
         font=dict(color=COLORS["warning"], size=11),
         ax=50, ay=-50
     )
-
     fig_ma.update_layout(
         title="Monthly Revenue with 3-Month Moving Average",
         plot_bgcolor="white", paper_bgcolor="white",
         font_color=COLORS["text"],
         margin=dict(t=60, b=60, l=60, r=20),
         xaxis_tickangle=45,
-        legend=dict(orientation="h", yanchor="bottom",
-                    y=1.02, xanchor="right", x=1),
-        yaxis_title="Revenue (R$)",
-        xaxis_title="Month"
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        yaxis_title="Revenue (R$)", xaxis_title="Month"
     )
 
-    # ── MONTH OVER MONTH GROWTH RATE ──────────────────────────
     df["mom_growth"] = df["total_revenue"].pct_change() * 100
-
     colors_growth = [
         COLORS["primary"] if x >= 0 else COLORS["warning"]
         for x in df["mom_growth"].fillna(0)
     ]
 
     fig_growth = go.Figure(go.Bar(
-        x=df["year_month"],
-        y=df["mom_growth"],
+        x=df["year_month"], y=df["mom_growth"],
         marker_color=colors_growth,
-        text=df["mom_growth"].apply(
-            lambda x: f"{x:+.1f}%" if not pd.isna(x) else ""
-        ),
-        textposition="outside",
-        cliponaxis=False,
-        name="MoM Growth"
+        text=df["mom_growth"].apply(lambda x: f"{x:+.1f}%" if not pd.isna(x) else ""),
+        textposition="outside", cliponaxis=False, name="MoM Growth"
     ))
-    fig_growth.add_hline(y=0, line_dash="dash",
-                         line_color=COLORS["muted"], opacity=0.5)
+    fig_growth.add_hline(y=0, line_dash="dash", line_color=COLORS["muted"], opacity=0.5)
     fig_growth.update_layout(
         title="Month-over-Month Revenue Growth Rate (%)",
         plot_bgcolor="white", paper_bgcolor="white",
         font_color=COLORS["text"],
         margin=dict(t=60, b=60, l=60, r=20),
-        xaxis_tickangle=45,
-        showlegend=False,
-        yaxis_title="Growth (%)",
-        xaxis_title="Month"
+        xaxis_tickangle=45, showlegend=False,
+        yaxis_title="Growth (%)", xaxis_title="Month"
     )
 
-    # ── YEAR OVER YEAR COMPARISON 2017 vs 2018 ────────────────
     df["year"]  = df["ds"].dt.year
     df["month"] = df["ds"].dt.month
-
     df_2017 = df[df["year"] == 2017][["month", "total_revenue"]].rename(
-        columns={"total_revenue": "revenue_2017"}
-    )
+        columns={"total_revenue": "revenue_2017"})
     df_2018 = df[df["year"] == 2018][["month", "total_revenue"]].rename(
-        columns={"total_revenue": "revenue_2018"}
-    )
+        columns={"total_revenue": "revenue_2018"})
     df_yoy = df_2017.merge(df_2018, on="month", how="inner")
-
-    month_names = {1:"Jan", 2:"Feb", 3:"Mar", 4:"Apr", 5:"May",
-                   6:"Jun", 7:"Jul", 8:"Aug", 9:"Sep", 10:"Oct",
-                   11:"Nov", 12:"Dec"}
+    month_names = {1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",
+                   7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec"}
     df_yoy["month_name"] = df_yoy["month"].map(month_names)
 
     fig_yoy = go.Figure()
     fig_yoy.add_trace(go.Bar(
-        x=df_yoy["month_name"],
-        y=df_yoy["revenue_2017"],
-        name="2017",
-        marker_color=COLORS["secondary"],
-        opacity=0.8
-    ))
+        x=df_yoy["month_name"], y=df_yoy["revenue_2017"],
+        name="2017", marker_color=COLORS["secondary"], opacity=0.8))
     fig_yoy.add_trace(go.Bar(
-        x=df_yoy["month_name"],
-        y=df_yoy["revenue_2018"],
-        name="2018",
-        marker_color=COLORS["primary"]
-    ))
+        x=df_yoy["month_name"], y=df_yoy["revenue_2018"],
+        name="2018", marker_color=COLORS["primary"]))
     fig_yoy.update_layout(
         title="Year-over-Year Revenue Comparison (2017 vs 2018)",
         plot_bgcolor="white", paper_bgcolor="white",
-        font_color=COLORS["text"],
-        barmode="group",
+        font_color=COLORS["text"], barmode="group",
         margin=dict(t=60, b=50, l=60, r=20),
-        legend=dict(orientation="h", yanchor="bottom",
-                    y=1.02, xanchor="right", x=1),
-        yaxis_title="Revenue (R$)",
-        xaxis_title="Month"
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        yaxis_title="Revenue (R$)", xaxis_title="Month"
     )
 
     insight = html.Div(
         style={**CARD_STYLE, "backgroundColor": COLORS["light"],
                "borderLeft": f"4px solid {COLORS['primary']}"},
         children=[
-            html.H6("Key Insights", style={"color": COLORS["primary"],
-                                           "fontWeight": "600"}),
+            html.H6("Key Insights", style={"color": COLORS["primary"], "fontWeight": "600"}),
             html.Ul([
-                html.Li("Revenue grew from R$127k (Jan 2017) to R$1.13M (Nov 2017) "
-                        "in 10 months — 791% growth in the first year",
+                html.Li("Revenue grew from R$127k (Jan 2017) to R$1.13M (Nov 2017) in 10 months — 791% growth in the first year",
                         style={"fontSize": "13px", "marginBottom": "6px"}),
-                html.Li("November 2017 Black Friday spike: +53.6% month-over-month "
-                        "— the single biggest growth event in the dataset",
+                html.Li("November 2017 Black Friday spike: +53.6% month-over-month — the single biggest growth event in the dataset",
                         style={"fontSize": "13px", "marginBottom": "6px"}),
-                html.Li("Platform stabilised at R$1M/month through 2018 — "
-                        "transitioning from hypergrowth to steady state",
+                html.Li("Platform stabilised at R$1M/month through 2018 — transitioning from hypergrowth to steady state",
                         style={"fontSize": "13px", "marginBottom": "6px"}),
-                html.Li("2018 revenue consistently above 2017 for all comparable months "
-                        "— confirming sustained year-over-year growth",
+                html.Li("2018 revenue consistently above 2017 for all comparable months — confirming sustained year-over-year growth",
                         style={"fontSize": "13px"}),
-            ], style={"margin": "0", "paddingLeft": "16px",
-                      "color": COLORS["text"]})
+            ], style={"margin": "0", "paddingLeft": "16px", "color": COLORS["text"]})
         ]
     )
 
     return html.Div([
-        dbc.Row([
-            dbc.Col(html.Div(style=CARD_STYLE, children=[
-                dcc.Graph(figure=fig_ma, config={"displayModeBar": False})
-            ]), width=12),
-        ]),
+        dbc.Row([dbc.Col(html.Div(style=CARD_STYLE, children=[
+            dcc.Graph(figure=fig_ma, config={"displayModeBar": False})
+        ]), width=12)]),
         dbc.Row([
             dbc.Col(html.Div(style=CARD_STYLE, children=[
                 dcc.Graph(figure=fig_growth, config={"displayModeBar": False})
@@ -809,4 +734,5 @@ def render_tab(tab):
 # ══════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8050)
+    port = int(os.environ.get("PORT", 8050))
+    app.run(host="0.0.0.0", port=port, debug=False)
