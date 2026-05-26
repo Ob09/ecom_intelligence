@@ -23,6 +23,8 @@ dbt_project/dbt_packages/
 
 # Great Expectations
 great_expectations/uncommitted/
+gx/uncommitted/
+gx/great_expectations.yml
 
 # OS files
 .DS_Store
