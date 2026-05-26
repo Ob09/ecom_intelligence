@@ -28,6 +28,7 @@ dash-bootstrap-components==1.5.0
 # Utilities
 python-dotenv==1.0.0
 requests==2.31.0
+matplotlib==3.8.2
 
 # Jupyter for exploration
 jupyter==1.0.0

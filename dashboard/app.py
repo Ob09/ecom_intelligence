@@ -20,7 +20,7 @@ import dash_bootstrap_components as dbc
 from datetime import datetime
 
 # ── CONFIGURATION ──────────────────────────────────────────────
-API_URL = "http://localhost:8000"
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 # ── HELPER FUNCTION ────────────────────────────────────────────
 def fetch(endpoint: str) -> list | dict:
