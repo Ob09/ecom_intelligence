@@ -33,3 +33,6 @@ matplotlib==3.8.2
 # Jupyter for exploration
 jupyter==1.0.0
 ipykernel==6.29.0
+
+
+gunicorn==21.2.0
