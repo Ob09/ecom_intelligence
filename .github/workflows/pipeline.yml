@@ -1,0 +1,108 @@
+# ============================================================
+# .github/workflows/pipeline.yml
+# PURPOSE: Run the full e-commerce BI pipeline daily in the cloud
+# TRIGGER: Every day at 6am UTC, or manually via GitHub UI
+# RUNNER: GitHub's free Ubuntu cloud machine
+# ============================================================
+
+name: E-commerce BI Pipeline
+
+on:
+  # Runs automatically every day at 6am UTC
+  # Cron format: minute hour day month weekday
+  schedule:
+    - cron: "0 6 * * *"
+
+  # Also allows manual triggering from GitHub Actions UI
+  # Go to your repo → Actions → E-commerce BI Pipeline → Run workflow
+  workflow_dispatch:
+
+jobs:
+  run_pipeline:
+    # GitHub spins up a fresh Ubuntu machine for every run
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── STEP 1: GET THE CODE ─────────────────────────────────
+      # Checks out your GitHub repository onto the runner machine
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── STEP 2: SET UP PYTHON ────────────────────────────────
+      # Installs Python 3.11 on the Ubuntu runner
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      # ── STEP 3: CACHE DEPENDENCIES ───────────────────────────
+      # Saves installed packages between runs so we don't
+      # reinstall everything from scratch every single day
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # ── STEP 4: INSTALL DEPENDENCIES ─────────────────────────
+      # Installs all Python packages from requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # ── STEP 5: SET UP DBT PROFILE ───────────────────────────
+      # Creates the dbt profiles.yml on the runner machine
+      # using credentials stored as GitHub Secrets
+      # Secrets are encrypted — never visible in logs
+      - name: Configure dbt profile
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << EOF
+          olist_bi:
+            outputs:
+              dev:
+                type: postgres
+                host: ${{ secrets.DB_HOST }}
+                port: 5432
+                dbname: postgres
+                user: ${{ secrets.DB_USER }}
+                pass: ${{ secrets.DB_PASSWORD }}
+                schema: public
+                threads: 4
+            target: dev
+          EOF
+
+      # ── STEP 6: CREATE .env FILE ─────────────────────────────
+      # Creates the .env file on the runner using GitHub Secrets
+      - name: Create .env file
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+
+      # ── STEP 7: RUN DBT MODELS ───────────────────────────────
+      # Rebuilds all 13 dbt models against Supabase
+      - name: Run dbt models
+        working-directory: dbt_project/olist_bi
+        run: dbt run --profiles-dir ~/.dbt
+
+      # ── STEP 8: RUN DBT TESTS ────────────────────────────────
+      # Runs all 27 data quality tests
+      - name: Run dbt tests
+        working-directory: dbt_project/olist_bi
+        run: dbt test --profiles-dir ~/.dbt
+
+      # ── STEP 9: RUN GREAT EXPECTATIONS ───────────────────────
+      # Runs business logic validation checks
+      - name: Run Great Expectations validation
+        run: python great_expectations/validate_expectations.py
+
+      # ── STEP 10: RUN PROPHET FORECAST ────────────────────────
+      # Updates the revenue forecast in Supabase
+      - name: Run Prophet forecast
+        run: python analytics/forecast.py
+
+      # ── STEP 11: GENERATE DBT DOCS ───────────────────────────
+      # Regenerates the dbt documentation website
+      - name: Generate dbt documentation
+        working-directory: dbt_project/olist_bi
+        run: dbt docs generate --profiles-dir ~/.dbt
