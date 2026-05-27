@@ -73,9 +73,9 @@ def query(sql: str) -> list[dict]:
 # Every API needs a health check endpoint.
 # Monitoring tools ping this URL to confirm the API is alive.
 # Returns a simple OK message — no database query needed.
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health_check():
-    return {"status": "ok", "message": "E-commerce BI API is running"}
+    return {"status": "ok"}
 
 
 # ── HEADLINE KPIs ──────────────────────────────────────────────
