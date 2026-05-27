@@ -13,7 +13,7 @@ great-expectations==0.18.8
 
 # Analytics and forecasting
 scikit-learn==1.4.0
-prophet==1.1.5
+prophet==1.1.4
 
 # API
 fastapi==0.109.0
@@ -38,3 +38,5 @@ ipykernel==6.29.0
 gunicorn==21.2.0
 
 protobuf==4.25.3
+
+pystan==3.3.0
