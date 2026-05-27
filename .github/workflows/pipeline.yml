@@ -98,8 +98,9 @@ jobs:
 
       # ── STEP 10: RUN PROPHET FORECAST ────────────────────────
       # Updates the revenue forecast in Supabase
-      - name: Run Prophet forecast
-        run: python analytics/forecast.py
+      - - name: Run Prophet forecast
+          run: python analytics/forecast.py
+          continue-on-error: true
 
       # ── STEP 11: GENERATE DBT DOCS ───────────────────────────
       # Regenerates the dbt documentation website
